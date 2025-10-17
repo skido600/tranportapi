@@ -10,6 +10,7 @@ interface AuthRequest extends Request {
     isAdmin?: string;
     email?: string;
     full_name?: string;
+    _id: string;
     userId: string;
   };
 }
@@ -30,14 +31,21 @@ export const verifyToken = async (
       userId: string;
       email?: string;
       isVerified: boolean;
+      _id: string;
     };
-
+    // console.log("decoded token", decoded);
     req.user = decoded;
     return next();
   } catch (err: any) {
     console.log("Access token expired, trying to refresh...");
-    // if (err.name === "TokenExpiredError") {
-    //   console.log("Access token expired, trying to refresh...");
-    // }
   }
 };
+
+// export const allowRoles = (...roles) => {
+//   return (req, res, next) => {
+//     if (!roles.includes(req.user.role)) {
+//       return res.status(403).json({ message: "Access denied" });
+//     }
+//     next();
+//   };
+// };

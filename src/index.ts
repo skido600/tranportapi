@@ -4,9 +4,13 @@ import { port } from "./utils/dotenv.ts";
 import { HandleError, notFound } from "./middlewares/ErrorHandling.ts";
 import authroute from "./Routes/authRoutes.ts";
 import cookieParser from "cookie-parser";
-
+generateRandomCode();
 import cors from "cors";
 import driver from "./Routes/driverRoutes.ts";
+import { generateRandomCode } from "./utils/UserId.ts";
+import { initSocket } from "./utils/socket.ts";
+import http from "http";
+//  initSocket
 const server = express();
 //middleware
 server.use(express.json());
@@ -17,17 +21,16 @@ server.use(
   })
 );
 server.use(cookieParser());
-// server.use((req: any, res: any, next) => {
-//   console.log("🔹 Cookies received:", req.cookies);
-//   next();
-// });
 
-//routes
 server.use("/auth/v1", authroute);
 server.use("/authenticated/v1", driver);
 server.use(HandleError);
 server.use(notFound);
-server.listen(port, async () => {
+
+const serverhttp = http.createServer(server);
+initSocket(serverhttp);
+
+serverhttp.listen(port, async () => {
   await connectDb();
   console.log("server running on port ", port);
 });

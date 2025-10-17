@@ -5,6 +5,8 @@ import Driver from "../models/DriverModel.ts";
 import Auth from "../models/usermodel.ts";
 import DriverTruckImg from "../models/DriverTruckImagemodel.ts";
 import cloudinary from "../utils/cloudinary.ts";
+import NotificationModel from "../models/notificationModel.ts";
+import { getIo } from "../utils/socket.ts";
 
 interface AuthRequest extends Request {
   user?: {
@@ -13,6 +15,7 @@ interface AuthRequest extends Request {
     email?: string;
     full_name?: string;
     userId: string;
+    _id: string;
   };
 }
 
@@ -51,13 +54,16 @@ async function Drivercontroller(
       return HandleResponse(res, false, 400, error.details[0]?.message as any);
     }
 
-    const authId = req.user?.userId;
+    const authId = req.user?._id;
+    console.log("testing something", authId);
     if (!authId) {
       return HandleResponse(res, false, 400, "You must be authenticated");
     }
 
     // Check if user already has a pending/approved driver request
     const existingDriver = await Driver.findOne({ authId });
+    console.log("this from driver check ", existingDriver);
+
     if (existingDriver) {
       if (existingDriver.status === "approved") {
         return HandleResponse(
@@ -85,6 +91,7 @@ async function Drivercontroller(
       truckType,
       country,
       state,
+      isDriverRequest: true,
       town,
       price,
       description,
@@ -118,14 +125,36 @@ async function Drivercontroller(
       images: uploadedImages,
     });
     const user = await Auth.findById(authId);
+    console.log("again", user);
     if (!user) {
       return HandleResponse(res, false, 400, "user not found");
     }
+    user.isDriverRequest = true;
     user.driver = driver._id;
     await user.save();
     await Drivertruck.save();
     driver.truckImagesDriver = Drivertruck._id;
     await driver.save();
+
+    const io = getIo();
+
+    // Notify user via DB + socket
+    const userNotification = await NotificationModel.create({
+      userId: authId,
+      message: "Your driver request is pending admin approval",
+      status: "pending",
+    });
+    io.to(user.userId).emit("driver_status_update", userNotification);
+
+    const admins = await Auth.find({ isAdmin: true });
+    if (admins.length > 0) {
+      const adminNotifications = admins.map((admin) => ({
+        userId: admin._id,
+        message: `${user.full_name} has submitted a new driver application.`,
+      }));
+      await NotificationModel.insertMany(adminNotifications);
+    }
+
     HandleResponse(
       res,
       true,
@@ -137,7 +166,27 @@ async function Drivercontroller(
     next(error);
   }
 }
+export const getUserNotifications = async (
+  req: Request & { user?: any },
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?._id;
+    if (!userId)
+      return HandleResponse(res, false, 400, "User not authenticated");
 
+    const notifications = await NotificationModel.find({ userId })
+      .sort({
+        createdAt: -1,
+      })
+      .limit(1);
+    console.log(notifications);
+    HandleResponse(res, true, 200, "User notifications", notifications);
+  } catch (err) {
+    next(err);
+  }
+};
 //ADMIN GET ALL DRIVER REQUESTS
 async function AdminGetAllRequestedDriver(
   req: AuthRequest,
@@ -145,16 +194,24 @@ async function AdminGetAllRequestedDriver(
   next: NextFunction
 ): Promise<void> {
   try {
-    // if (!req.user?.isAdmin) {
-    //   return HandleResponse(res, false, 403, "You must be admin");
-    // }
+    const drivers = await Driver.find({
+      isDriverRequest: true,
+      status: "pending",
+    }).populate("truckImagesDriver");
 
-    // Fetch all pending driver requests
-    const drivers = await Driver.find({ status: "pending" })
-      .populate("authId", "full_name email  isDriver")
-      .populate("truckImagesDriver");
+    console.log(drivers);
+    const cleanedDrivers = drivers.map((driver) => ({
+      _id: driver._id,
+      state: driver.state,
+      town: driver.town,
+      country: driver.country,
+      driverId: driver.driverId,
+      phone: driver.phone,
+      licenseNumber: driver.licenseNumber,
+      images: driver.truckImagesDriver?.images || [],
+    }));
 
-    HandleResponse(res, true, 200, "Requested drivers", drivers);
+    HandleResponse(res, true, 200, "Requested drivers", cleanedDrivers);
   } catch (error) {
     next(error);
   }
@@ -166,31 +223,37 @@ async function AdminAcceptDriverRequest(
   next: NextFunction
 ): Promise<void> {
   try {
-    if (!req.user?.isAdmin) {
-      return HandleResponse(res, false, 403, "You must be admin");
-    }
-
     const driverId = req.params.driverid;
-    if (!driverId) {
+    if (!driverId)
       return HandleResponse(res, false, 400, "Driver ID is required");
-    }
 
-    const driver = await Driver.findById(driverId);
-    if (!driver) {
-      return HandleResponse(res, false, 404, "Driver not found");
-    }
+    const driver = await Driver.findById(driverId).populate("authId isDriver");
+    console.log("driver accesp", driver);
+    if (!driver) return HandleResponse(res, false, 404, "Driver not found");
 
     const user = await Auth.findById(driver.authId);
-    if (!user) {
-      return HandleResponse(res, false, 404, "Associated user not found");
+    if (!user) return HandleResponse(res, false, 404, "User not found");
+    if (driver.status === "approved") {
+      return HandleResponse(
+        res,
+        false,
+        400,
+        "Driver has already been approved"
+      );
     }
-
-    // Update driver and user
     driver.status = "approved";
+    driver.isDriver = true;
     await driver.save();
 
-    user.isDriver = true;
-    await user.save();
+    const io = getIo();
+
+    // ✅ Use _id and toString() for socket emit
+    const userNotification = await NotificationModel.create({
+      userId: user._id,
+      message: "Your driver request has been approved by admin.",
+      status: "approved",
+    });
+    io.to(user.userId).emit("driver_status_update", userNotification);
 
     HandleResponse(res, true, 200, "Driver request approved successfully");
   } catch (error) {
@@ -205,9 +268,9 @@ async function AdminRejectDriverRequest(
   next: NextFunction
 ): Promise<void> {
   try {
-    if (!req.user?.isAdmin) {
-      return HandleResponse(res, false, 403, "You must be admin");
-    }
+    // if (!req.user?.isAdmin) {
+    //   return HandleResponse(res, false, 403, "You must be admin");
+    // }
 
     const driverId = req.params.driverid;
     if (!driverId) {
@@ -220,16 +283,21 @@ async function AdminRejectDriverRequest(
     }
 
     const user = await Auth.findById(driver.authId);
-    if (!user) {
-      return HandleResponse(res, false, 404, "Associated user not found");
-    }
+    if (!user) return HandleResponse(res, false, 404, "User not found");
 
-    // Update driver and user
     driver.status = "rejected";
+    driver.isDriver = false;
     await driver.save();
+    const io = getIo();
 
-    user.isDriver = false;
-    await user.save();
+    // Notify user via DB + socket
+    const userNotification = await NotificationModel.create({
+      userId: user?.userId,
+      message: `Your driver request has been rejected by admin.`,
+      status: "approved",
+    });
+
+    io.to(user.userId).emit("driver_status_update", userNotification);
 
     HandleResponse(res, true, 200, "Driver request rejected successfully");
   } catch (error) {
@@ -239,7 +307,6 @@ async function AdminRejectDriverRequest(
 
 export default {
   Drivercontroller,
-
   AdminGetAllRequestedDriver,
   AdminAcceptDriverRequest,
   AdminRejectDriverRequest,

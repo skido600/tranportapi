@@ -12,6 +12,7 @@ export interface Driver extends mongoose.Document {
   authId: mongoose.Types.ObjectId;
   driverId: string;
   licenseNumber: string;
+  isDriver: boolean;
   phone: string;
   truckType: string;
   country: string;
@@ -21,6 +22,7 @@ export interface Driver extends mongoose.Document {
   isDriverRequest: boolean;
   verified: boolean;
   rating: number;
+  images: any;
   description: string;
   status: "pending" | "approved" | "rejected" | "none";
   experience: number;
@@ -33,9 +35,12 @@ export interface AuthUser extends mongoose.Document {
   password: string;
   userId: string;
   userName: string;
-  refreshToken: string;
+  refreshToken: string | null;
   isVerified: boolean;
   isAdmin: boolean;
+  address: string | null;
+  role: string;
+  country: string | null;
   isDriver: boolean;
   driver?: mongoose.Types.ObjectId | any;
   isDriverRequest: boolean;
@@ -54,6 +59,14 @@ export type SignupType = {
   userName: string;
   password: string;
   confirmPassword: string;
+  address: string;
+  Phone_Number: number;
+  country: string;
+  role: string;
+  // location?: {
+  //   latitude: number;
+  //   longitude: number;
+  // };
 };
 export type LoginType = {
   Email_Username: string;

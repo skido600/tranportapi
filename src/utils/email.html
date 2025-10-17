@@ -29,7 +29,7 @@
         width: 100%;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+       border: 2px solid gainsboro;
         overflow: hidden;
       }
 
@@ -86,13 +86,12 @@
         display: inline-block;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 16px 48px;
+        padding: 12px 20px;
         text-decoration: none;
         border-radius: 8px;
-        font-size: 16px;
+        font-size: 10px;
         font-weight: 600;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  
       }
 
       .verify-button:hover {
@@ -166,10 +165,7 @@
   </head>
   <body>
     <div class="email-container">
-      <!-- <div class="email-header">
-        <h1>Verify Your Email</h1>
-      </div> -->
-
+  
       <div class="email-body">
         <p class="greeting">Welcome, {{username}}!</p>
         <p class="message">
@@ -188,6 +184,7 @@
       <div class="email-footer">
         <p>This email was sent to you because you signed up for an account.</p>
         <p>If you didn't sign up, you can safely ignore this email.</p>
+        <p>the verifcation link will expire in the next 30mins</p>
       </div>
     </div>
   </body>

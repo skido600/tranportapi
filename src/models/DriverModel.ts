@@ -37,6 +37,7 @@ const driverSchema = new mongoose.Schema(
       ref: "drivertruck",
       default: null,
     },
+    isDriver: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

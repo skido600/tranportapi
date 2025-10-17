@@ -18,7 +18,22 @@ export const CreateUserSchema = Joi.object({
 
   userName: Joi.string().min(4).required().messages({
     "string.empty": "Username is required",
-    "string.min": "Username must be at least 2 characters",
+    "string.min": "Username must be at least 4 characters",
+  }),
+  confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
+    "any.only": "Passwords do not match",
+  }),
+
+  address: Joi.string().min(4).required().messages({
+    "string.empty": "Address is required",
+    "string.min": "Address must be at least 4 characters",
+  }),
+  country: Joi.string().required().messages({
+    "string.empty": "country is required",
+  }),
+  role: Joi.string().valid("driver", "client").required().messages({
+    "any.only": "Role must be either 'driver' or 'client'",
+    "any.required": "Role is required",
   }),
 });
 
@@ -81,12 +96,17 @@ export const Driverdetails = Joi.object({
     "string.max": "License number seems too long — please check again.",
   }),
 
-  phone: Joi.string().required().messages({
-    "string.empty":
-      "Phone number is required — please enter your phone number.",
-    "string.pattern.base":
-      "Phone number must contain only digits (10–15 characters).",
-  }),
+  phone: Joi.number()
+    .integer()
+    .min(1000000000) // 10 digits
+    .max(999999999999999) // 15 digits
+    .required()
+    .messages({
+      "number.base": "Phone number must be a number",
+      "number.min": "Phone number must have at least 10 digits",
+      "number.max": "Phone number must not exceed 15 digits",
+      "any.required": "Phone number is required",
+    }),
 
   truckType: Joi.string().required().messages({
     "string.empty": "Please enter the truck type you want to register.",
