@@ -16,6 +16,7 @@ const driverSchema = new mongoose.Schema(
     state: { type: String, required: true },
     town: { type: String, required: true },
     price: { type: Number, required: true },
+    discountPrice: { type: Number },
     isDriverRequest: { type: Boolean, default: false },
     verified: { type: Boolean, default: false },
     rating: { type: Number, default: 0 },

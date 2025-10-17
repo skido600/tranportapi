@@ -2,8 +2,9 @@ import type { Request, Response, NextFunction } from "express";
 import { HandleResponse } from "../utils/Response.ts";
 import Driver from "../models/DriverModel.ts";
 import Auth from "../models/usermodel.ts";
+import cloudinary from "../utils/cloudinary.ts";
 import DriverTruckImg from "../models/DriverTruckImagemodel.ts";
-import { getIo } from "../utils/socket.ts";
+
 interface AuthRequest extends Request {
   user?: {
     isVerified: boolean;
@@ -14,7 +15,8 @@ interface AuthRequest extends Request {
     _id: string;
   };
 }
-export async function profileDetails(
+
+export async function getClientProfile(
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -24,65 +26,258 @@ export async function profileDetails(
     if (!authId) {
       return HandleResponse(res, false, 400, "You must be authenticated");
     }
-    const user = await Auth.findById(authId).populate("driver");
 
+    const user = await Auth.findById(authId);
     if (!user) {
       return HandleResponse(res, false, 404, "User not found");
     }
 
-    // await updateUserAdmin(authId);
+    if (user.role !== "client") {
+      return HandleResponse(res, false, 403, "Not a client account");
+    }
+
+    const clientData = {
+      userId: user._id,
+      full_name: user.full_name,
+      email: user.email,
+      userName: user.userName,
+      isAdmin: user.isAdmin,
+      role: user.role,
+      updatedAt: user.updatedAt,
+      createdAt: user.createdAt,
+    };
+
     HandleResponse(
       res,
       true,
       200,
-      "user details fetch sucessfully",
-
-      {
-        userId: user._id,
-        full_name: user.full_name,
-        email: user.email,
-        userName: user.userName,
-        isAdmin: user.isAdmin,
-        isDriver: user.isDriver,
-        driverStatus: user.driver?.status ?? "none",
-        updatedAt: user.updatedAt,
-      }
+      "Client profile fetched successfully",
+      clientData
     );
   } catch (error) {
     next(error);
   }
 }
 
-// export async function updateUserAdmin(userId: string) {
-//   // 1️⃣ Fetch user from DB and populate driver
-//  const user = await Auth.findById(userId).populate("driver").lean();
-//   if (!user) throw new Error("User not found");
+export async function getDriverProfile(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const authId = req.user?._id;
+    if (!authId) {
+      return HandleResponse(res, false, 400, "You must be authenticated");
+    }
 
-//   // 2️⃣ Optional: if you want to make some manual changes, do them here
-//   // Example: user.isDriver = true; (or any other manual DB updates)
-//   // await user.save(); // save only if you make changes
+    const user = await Auth.findById(authId).select("+driver");
+    console.log("driver details", user);
+    if (!user) {
+      return HandleResponse(res, false, 404, "User not found");
+    }
 
-//   // 3️⃣ Prepare payload for socket emit
-//   const payload = {
-//     userId: user._id,
-//     full_name: user.full_name,
-//     email: user.email,
-//     userName: user.userName,
-//     isAdmin: user.isAdmin,
-//     isDriver: user.isDriver,
-//     driverStatus: user.driver?.status ?? "none",
-//     updatedAt: user.updatedAt,
-//   };
+    if (user.role !== "driver") {
+      return HandleResponse(res, false, 403, "Not a driver account");
+    }
 
-//   // 4️⃣ Emit to the specific user
-//   const io = getIo();
-//   io.to(userId).emit("userUpdated", payload);
+    const driver = user.driver;
+    if (!driver) {
+      return HandleResponse(res, false, 404, "Driver details not found");
+    }
 
-//   return payload;
-// }
+    const driverData = {
+      userId: user._id,
+      full_name: user.full_name,
+      email: user.email,
+      userName: user.userName,
+      role: user.role,
+      driverdetails: {
+        _id: driver._id,
+        licenseNumber: driver.licenseNumber,
+        phone: driver.phone,
+        truckType: driver.truckType,
+        country: driver.country,
+        state: driver.state,
+        town: driver.town,
+        price: driver.price,
+        isDriverRequest: driver.isDriverRequest,
+        verified: driver.verified,
+        rating: driver.rating,
+        description: driver.description,
+        status: driver.status,
+        experience: driver.experience,
+        driverId: driver.driverId,
+        truckImagesDriver: driver.truckImagesDriver
+          ? {
+              _id: driver.truckImagesDriver._id,
+              images: driver.truckImagesDriver.images,
+              createdAt: driver.truckImagesDriver.createdAt,
+              updatedAt: driver.truckImagesDriver.updatedAt,
+            }
+          : null,
+      },
+      updatedAt: user.updatedAt,
+    };
+
+    HandleResponse(
+      res,
+      true,
+      200,
+      "Driver profile fetched successfully",
+      driverData
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+export const updateProfileImage = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authId = req.user?._id;
+    if (!authId) {
+      return HandleResponse(res, false, 400, "You must be authenticated");
+    }
+
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded" });
+    }
+    const user = await Auth.findById(authId);
+    console.log("just been sure it hit", user);
+    if (!user) {
+      return HandleResponse(res, false, 404, "User not found");
+    }
+
+    if (user.publicId && !user.image.includes("/images/")) {
+      await cloudinary.uploader.destroy(user.publicId);
+    }
+
+    const uploaded = await cloudinary.uploader.upload(req.file.path, {
+      folder: user.role === "driver" ? "drivers" : "clients",
+    });
+
+    user.image = uploaded.secure_url;
+    user.publicId = uploaded.public_id;
+    await user.save();
+    HandleResponse(res, true, 200, "Profile image updated successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+export const updateDriverDetails = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authId = req.user?._id;
+
+    if (!authId) {
+      return HandleResponse(res, false, 400, "Not a valid user");
+    }
+
+    const authUser = await Auth.findById(authId);
+    if (!authUser) {
+      return HandleResponse(res, false, 404, "User not found");
+    }
+
+    if (authUser.role !== "driver") {
+      return HandleResponse(res, false, 403, "This update is for drivers only");
+    }
+
+    // Get the driver's data by authId
+    const driver = await Driver.findOne({ authId });
+    if (!driver) {
+      return HandleResponse(res, false, 404, "Driver record not found");
+    }
+
+    const {
+      name,
+      licenseNumber,
+      state,
+      town,
+      country,
+      price,
+      discountPrice,
+      deletePublicIds,
+    } = req.body;
+
+    const updateData: any = {};
+    if (name) updateData.name = name;
+    if (licenseNumber) updateData.licenseNumber = licenseNumber;
+    if (state) updateData.state = state;
+    if (town) updateData.town = town;
+    if (country) updateData.country = country;
+    if (price !== undefined) updateData.price = price;
+    if (discountPrice !== undefined) updateData.discountPrice = discountPrice;
+
+    const updatedDriver = await Driver.findByIdAndUpdate(
+      driver._id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    // ✅ Handle image deletion
+    if (deletePublicIds && Array.isArray(deletePublicIds)) {
+      for (const publicId of deletePublicIds) {
+        await cloudinary.uploader.destroy(publicId); // delete from Cloudinary
+      }
+
+      await DriverTruckImg.updateOne(
+        { userId: driver._id },
+        { $pull: { images: { publicId: { $in: deletePublicIds } } } }
+      );
+    }
+
+    // ✅ Handle new image uploads
+    if (req.files && Array.isArray(req.files)) {
+      const uploadedImages = [];
+
+      for (const file of req.files as Express.Multer.File[]) {
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+          folder: "drivers/trucks",
+        });
+
+        uploadedImages.push({
+          originalName: file.originalname,
+          publicId: uploadResult.public_id,
+          url: uploadResult.secure_url,
+        });
+      }
+
+      await DriverTruckImg.updateOne(
+        { userId: driver._id },
+        { $push: { images: { $each: uploadedImages } } }
+      );
+    }
+
+    const finalDriver = await Driver.findById(driver._id)
+      .populate("truckImagesDriver")
+      .lean();
+
+    return HandleResponse(
+      res,
+      true,
+      200,
+      "Driver updated successfully",
+      finalDriver
+    );
+  } catch (error) {
+    console.error("Error updating driver:", error);
+    next(error);
+  }
+};
+
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const { search } = req.query; // single param
+    const { search } = req.query;
 
     let filter: any = {};
 

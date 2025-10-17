@@ -103,7 +103,6 @@ export const LoginService = async (
     const user = await Auth.findOne({
       $or: [{ email: normalizedInput }, { userName: normalizedInput }],
     }).select("+password");
-    //   .populate("driver");
 
     console.log("user", user);
     if (!user) {
@@ -115,32 +114,24 @@ export const LoginService = async (
     }
     if (!user.isVerified) {
       const expired =
-        user.verificationCodeExpires &&
+        !user.verificationCodeExpires ||
         user.verificationCodeExpires < new Date();
 
-      const token = tokenService.generateMailToken(user._id, user.full_name);
-
-      const verifyLink = `${frontend_url}/verify?token=${token}`;
-      await mailService.sendVerification(user, verifyLink);
-
-      user.verificationCodeExpires = new Date(Date.now() + VERIFY_EXPIRES_IN);
-      await user.save();
       if (expired) {
+        const token = tokenService.generateMailToken(user._id, user.full_name);
+
+        const verifyLink = `${frontend_url}/verify?token=${token}`;
+        await mailService.sendVerification(user, verifyLink);
+
+        user.verificationCodeExpires = new Date(Date.now() + VERIFY_EXPIRES_IN);
+        await user.save();
         throw new Error(
           "Verification link expired. A new link has been sent to your email."
         );
       } else {
-        throw new Error(
-          "Email not verified. A new verification link has been sent to your email."
-        );
+        throw new Error("Email not verified. Please check your inbox.");
       }
     }
-
-    //   if (user.driver) {
-    //     // console.log("user from driver", user.driver);
-    //     user.isDriverRequest = true;
-    //     await user.save();
-    //   }
 
     const accesstoken = tokenService.generateAccessToken(user);
     const refreshtoken = tokenService.generateRefreshToken(user);

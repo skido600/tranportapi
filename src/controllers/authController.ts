@@ -178,8 +178,7 @@ async function Login(
       userdetails.isAdmin = response.user.isAdmin;
     }
 
-    // console.log(userdetails);
-    HandleResponse(res, true, 200, "Login successful ✍🏻", userdetails);
+    HandleResponse(res, true, 200, "Login successful  ", userdetails);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "User not found") {
@@ -192,8 +191,7 @@ async function Login(
       ) {
         return HandleResponse(res, false, 401, error.message);
       } else if (
-        error.message ===
-        "Email not verified. A new verification link has been sent to your email."
+        error.message === "Email not verified. Please check your inbox."
       ) {
         return HandleResponse(res, false, 409, error.message);
       } else {

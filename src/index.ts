@@ -4,12 +4,15 @@ import { port } from "./utils/dotenv.ts";
 import { HandleError, notFound } from "./middlewares/ErrorHandling.ts";
 import authroute from "./Routes/authRoutes.ts";
 import cookieParser from "cookie-parser";
-generateRandomCode();
+
 import cors from "cors";
 import driver from "./Routes/driverRoutes.ts";
-import { generateRandomCode } from "./utils/UserId.ts";
+
 import { initSocket } from "./utils/socket.ts";
+import path from "path";
 import http from "http";
+import userpersonaldata from "./Routes/userupdateRoute.ts";
+
 //  initSocket
 const server = express();
 //middleware
@@ -21,9 +24,14 @@ server.use(
   })
 );
 server.use(cookieParser());
+server.use(
+  "/images",
+  express.static(path.join(process.cwd(), "/public/images"))
+);
 
 server.use("/auth/v1", authroute);
 server.use("/authenticated/v1", driver);
+server.use("/authenticated/userdetails", userpersonaldata);
 server.use(HandleError);
 server.use(notFound);
 

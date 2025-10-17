@@ -11,6 +11,7 @@ export type HandleResponseType<> = (
 export interface Driver extends mongoose.Document {
   authId: mongoose.Types.ObjectId;
   driverId: string;
+  discountPrice: number;
   licenseNumber: string;
   isDriver: boolean;
   phone: string;
@@ -38,6 +39,8 @@ export interface AuthUser extends mongoose.Document {
   refreshToken: string | null;
   isVerified: boolean;
   isAdmin: boolean;
+  image: string;
+  publicId: string;
   address: string | null;
   role: string;
   country: string | null;

@@ -125,7 +125,7 @@ async function Drivercontroller(
       images: uploadedImages,
     });
     const user = await Auth.findById(authId);
-    console.log("again", user);
+    // console.log("again", user);
     if (!user) {
       return HandleResponse(res, false, 400, "user not found");
     }
@@ -244,10 +244,10 @@ async function AdminAcceptDriverRequest(
     driver.status = "approved";
     driver.isDriver = true;
     await driver.save();
-
+    user.isDriver = false;
+    await user.save();
     const io = getIo();
 
-    // ✅ Use _id and toString() for socket emit
     const userNotification = await NotificationModel.create({
       userId: user._id,
       message: "Your driver request has been approved by admin.",
@@ -288,6 +288,8 @@ async function AdminRejectDriverRequest(
     driver.status = "rejected";
     driver.isDriver = false;
     await driver.save();
+    user.isDriver = false;
+    await user.save();
     const io = getIo();
 
     // Notify user via DB + socket

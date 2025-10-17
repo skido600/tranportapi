@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import { generateRandomCode } from "../utils/UserId.ts";
-import type { AuthUser, Driver } from "../types/types.ts";
+import type { AuthUser,  } from "../types/types.ts";
+import { config } from "dotenv";
 
+config();
 const userSchema = new mongoose.Schema(
   {
     full_name: {
@@ -22,7 +24,10 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       select: false,
     },
-
+    trip: {
+      type: String,
+      required:false
+    },
     userId: {
       type: String,
       unique: true,
@@ -41,10 +46,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    // Country: {
-    //   type: String,
-    //   required: false,
-    // },
+
     resetCodeExpire: { type: Date, required: false },
     verificationCodeExpires: { type: Date, required: false },
     refreshToken: { type: String, default: null, select: false },
@@ -68,6 +70,24 @@ const userSchema = new mongoose.Schema(
       enum: ["driver", "client"],
       required: true,
       default: "client",
+    },
+    image: {
+      type: String,
+      default: function () {
+        if (this.role === "driver") {
+          return `${
+            process.env.SERVER_URL || "http://localhost:3001"
+          }/images/vecteezy_driver-vector-icon-design_16425938.jpg`;
+        }
+
+        return `${
+          process.env.SERVER_URL || "http://localhost:30001"
+        }/images/images (2).png`;
+      },
+    },
+    publicId: {
+      type: String,
+      default: "",
     },
     driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
   },
