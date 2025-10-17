@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const userProfileImageSchema = new mongoose.Schema(
   {
     userId: {

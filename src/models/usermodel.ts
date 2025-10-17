@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { generateRandomCode } from "../utils/UserId.ts";
-import type { AuthUser,  } from "../types/types.ts";
+import type { AuthUser } from "../types/types.ts";
 import { config } from "dotenv";
 
 config();
@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
     },
     trip: {
       type: String,
-      required:false
+      required: false,
     },
     userId: {
       type: String,
@@ -55,15 +55,15 @@ const userSchema = new mongoose.Schema(
     ispremium: { type: Boolean, default: false },
     address: {
       type: String,
-      required: function () {
-        return this.role === "client";
-      },
+      // required: function () {
+      //   return this.role === "client";
+      // },
     },
     country: {
       type: String,
-      required: function () {
-        return this.role === "client";
-      },
+      // required: function () {
+      //   return this.role === "client";
+      // },
     },
     role: {
       type: String,
@@ -89,7 +89,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
+    driver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Driver",
+      default: null,
+    },
   },
 
   { timestamps: true }
@@ -109,13 +113,13 @@ userSchema.pre("save", function (next) {
   }
   next();
 });
-userSchema.pre("save", function (next) {
-  if (this.role === "driver") {
-    this.address = null;
-    this.country = null;
-  }
-  next();
-});
+// userSchema.pre("save", function (next) {
+//   if (this.role === "driver") {
+//     this.address = null;
+//     this.country = null;
+//   }
+//   next();
+// });
 
 const Auth = mongoose.model<AuthUser>("Auth", userSchema);
 

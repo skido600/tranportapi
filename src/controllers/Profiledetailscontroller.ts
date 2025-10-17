@@ -80,42 +80,39 @@ export async function getDriverProfile(
       return HandleResponse(res, false, 403, "Not a driver account");
     }
 
-    const driver = user.driver;
-    if (!driver) {
-      return HandleResponse(res, false, 404, "Driver details not found");
-    }
-
     const driverData = {
       userId: user._id,
       full_name: user.full_name,
       email: user.email,
       userName: user.userName,
       role: user.role,
-      driverdetails: {
-        _id: driver._id,
-        licenseNumber: driver.licenseNumber,
-        phone: driver.phone,
-        truckType: driver.truckType,
-        country: driver.country,
-        state: driver.state,
-        town: driver.town,
-        price: driver.price,
-        isDriverRequest: driver.isDriverRequest,
-        verified: driver.verified,
-        rating: driver.rating,
-        description: driver.description,
-        status: driver.status,
-        experience: driver.experience,
-        driverId: driver.driverId,
-        truckImagesDriver: driver.truckImagesDriver
-          ? {
-              _id: driver.truckImagesDriver._id,
-              images: driver.truckImagesDriver.images,
-              createdAt: driver.truckImagesDriver.createdAt,
-              updatedAt: driver.truckImagesDriver.updatedAt,
-            }
-          : null,
-      },
+      driver: user.driver
+        ? {
+            _id: user.driver._id,
+            licenseNumber: user.driver.licenseNumber,
+            phone: user.driver.phone,
+            truckType: user.driver.truckType,
+            country: user.driver.country,
+            state: user.driver.state,
+            town: user.driver.town,
+            price: user.driver.price,
+            isDriverRequest: user.driver.isDriverRequest,
+            verified: user.driver.verified,
+            rating: user.driver.rating,
+            description: user.driver.description,
+            status: user.driver.status,
+            experience: user.driver.experience,
+            driverId: user.driver.driverId,
+            truckImagesDriver: user.driver.truckImagesDriver
+              ? {
+                  _id: user.driver.truckImagesDriver._id,
+                  images: user.driver.truckImagesDriver.images,
+                  createdAt: user.driver.truckImagesDriver.createdAt,
+                  updatedAt: user.driver.truckImagesDriver.updatedAt,
+                }
+              : null,
+          }
+        : null, // default null if driver hasn’t registered
       updatedAt: user.updatedAt,
     };
 

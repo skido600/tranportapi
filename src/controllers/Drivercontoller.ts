@@ -18,6 +18,13 @@ interface AuthRequest extends Request {
     _id: string;
   };
 }
+interface TruckImagesDriver {
+  images: {
+    originalName: string;
+    publicId: string;
+    url: string;
+  }[];
+}
 
 //DRIVER APPLICATION
 async function Drivercontroller(
@@ -62,7 +69,6 @@ async function Drivercontroller(
 
     // Check if user already has a pending/approved driver request
     const existingDriver = await Driver.findOne({ authId });
-    console.log("this from driver check ", existingDriver);
 
     if (existingDriver) {
       if (existingDriver.status === "approved") {
@@ -199,7 +205,7 @@ async function AdminGetAllRequestedDriver(
       status: "pending",
     }).populate("truckImagesDriver");
 
-    console.log(drivers);
+    // console.log(drivers);
     const cleanedDrivers = drivers.map((driver) => ({
       _id: driver._id,
       state: driver.state,
@@ -208,7 +214,7 @@ async function AdminGetAllRequestedDriver(
       driverId: driver.driverId,
       phone: driver.phone,
       licenseNumber: driver.licenseNumber,
-      images: driver.truckImagesDriver?.images || [],
+      images: (driver?.truckImagesDriver as any)?.images || [],
     }));
 
     HandleResponse(res, true, 200, "Requested drivers", cleanedDrivers);
