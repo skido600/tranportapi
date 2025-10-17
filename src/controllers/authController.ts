@@ -327,11 +327,6 @@ export async function logout(
 
     if (userId) {
       await client.del(`refresh:${userId}`);
-      // const user = await Auth.findById(userId).select("+refreshtoken");
-      // if (user) {
-      //   user.refreshToken = null;
-      //   await user.save();
-      // }
     }
 
     res.clearCookie("accessToken", {

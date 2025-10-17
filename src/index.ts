@@ -37,7 +37,11 @@ server.use(notFound);
 
 const serverhttp = http.createServer(server);
 initSocket(serverhttp);
-
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  // Optionally exit:
+  process.exit(1);
+});
 serverhttp.listen(port, async () => {
   await connectDb();
   console.log("server running on port ", port);
