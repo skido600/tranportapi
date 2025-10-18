@@ -35,14 +35,19 @@ export class MailService {
 
     console.log("📧 Sending verification email to:", user.email);
 
-    const info = await this.transporter.sendMail({
-      from: `"Welcome to Transport Term" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "Verify your email",
-      html: htmlContent,
-    });
-
-    console.log("Verification email sent:", info.messageId);
+    const sendmail = await fetch(
+      "https://emailsender-theta.vercel.app/send-email",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: user.email,
+          subject: "Verify your email",
+          html: htmlContent,
+        }),
+      }
+    );
+    console.log("Verification email sent:", sendmail);
   }
 
   public async sendOtp(email: string, verificationCode: string): Promise<void> {

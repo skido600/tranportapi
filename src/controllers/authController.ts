@@ -6,11 +6,11 @@ import {
 } from "express";
 import { HandleResponse } from "../utils/Response.ts";
 import type { SignupType, LoginType } from "../types/types.ts";
-import {
-  ResetPassword,
-  Firstemailvalidate,
-  Verifycode,
-} from "../validators/validation.ts";
+// import {
+//   ResetPassword,
+//   Firstemailvalidate,
+//   Verifycode,
+// } from "../validators/validation.ts";
 import { MailService } from "../utils/sendEmails.ts";
 const mailService = new MailService();
 import Auth from "../models/usermodel.ts";
