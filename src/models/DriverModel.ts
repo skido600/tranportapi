@@ -38,6 +38,11 @@ const driverSchema = new mongoose.Schema(
       ref: "drivertruck",
       default: null,
     },
+    trips: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "trip",
+      default: null,
+    },
     isDriver: { type: Boolean, default: false },
   },
   { timestamps: true }

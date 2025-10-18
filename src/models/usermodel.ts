@@ -113,13 +113,6 @@ userSchema.pre("save", function (next) {
   }
   next();
 });
-// userSchema.pre("save", function (next) {
-//   if (this.role === "driver") {
-//     this.address = null;
-//     this.country = null;
-//   }
-//   next();
-// });
 
 const Auth = mongoose.model<AuthUser>("Auth", userSchema);
 
