@@ -24,6 +24,7 @@ server.use(
   })
 );
 server.use(cookieParser());
+server.use(express.urlencoded({ extended: true }));
 server.use(
   "/images",
   express.static(path.join(process.cwd(), "/public/images"))

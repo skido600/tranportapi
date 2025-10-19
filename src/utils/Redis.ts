@@ -3,9 +3,9 @@ import { config } from "dotenv";
 config();
 
 const client = createClient({
-  url: process.env.REDIS_URL as string,
+  url: "redis://localhost:6379",
 });
-
+//  (process.env.REDIS_URL as string) ||
 client.on("error", (err) => {
   throw err;
 });

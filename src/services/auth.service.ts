@@ -176,12 +176,10 @@ export async function refreshTokenVerify(token: string) {
       throw new Error("User not found or token expired");
     }
 
-    // Compare token from request with one stored in Redis
     if (storedToken !== token) {
       throw new Error("Invalid refresh token");
     }
 
-    // Fetch user from MongoDB to generate new access token
     const user = await Auth.findById(decoded.id);
     if (!user) {
       throw new Error("User not found");
@@ -258,7 +256,6 @@ export async function resetPasswordService(
   try {
     if (newPassword !== confirmNewpassword) {
       throw new Error("Passwords do not match");
-      //   return HandleResponse(res, false, 400);
     }
     const normalizedInput = email.toLowerCase();
     const user = await Auth.findOne({

@@ -27,8 +27,7 @@ authroute.post(
   auth.forgotPassword
 );
 authroute.post("/verifycode", validateRequest(Verifycode), auth.verifyCode);
-// authroute.get("/client", verifyToken, getClientProfile);
-// authroute.get("/driver", verifyToken, getDriverProfile);
+
 authroute.put(
   "/resetpassword",
   validateRequest(ResetPassword),

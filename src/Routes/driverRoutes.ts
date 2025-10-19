@@ -5,11 +5,15 @@ import Drivercontoller, {
 } from "../controllers/Drivercontoller.ts";
 import upload from "../utils/multer.ts";
 import { verifyToken } from "../middlewares/verifyAccessToken.ts";
-import { isAdmin } from "../middlewares/isAdmin.ts";
+// import { isAdmin } from "../middlewares/isAdmin.ts";
 import { getAllUsers } from "../controllers/Profiledetailscontroller.ts";
-// getAllUsers
+import {
+  createDriverNews,
+  getDriverNewsBySlug,
+  GetEachDrivernews,
+  deleteDriverNews,
+} from "../controllers/Newscontroller.ts";
 const driver: Router = express.Router();
-
 driver.post(
   "/driver-request",
   verifyToken,
@@ -34,5 +38,9 @@ driver.get(
   Drivercontoller.AdminGetAllRequestedDriver
 );
 
+driver.post("/news", verifyToken, upload.single("image"), createDriverNews);
+driver.get("/news/:slug", verifyToken, getDriverNewsBySlug);
+driver.get("/myblogs", verifyToken, GetEachDrivernews);
+driver.delete("/myblogs/:id", verifyToken, deleteDriverNews);
 driver.get("/notification", verifyToken, getUserNotifications);
 export default driver;

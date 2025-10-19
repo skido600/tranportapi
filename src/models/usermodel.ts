@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import { generateRandomCode } from "../utils/UserId.ts";
 import type { AuthUser } from "../types/types.ts";
 import { config } from "dotenv";
-
 config();
 const userSchema = new mongoose.Schema(
   {
@@ -55,15 +54,9 @@ const userSchema = new mongoose.Schema(
     ispremium: { type: Boolean, default: false },
     address: {
       type: String,
-      // required: function () {
-      //   return this.role === "client";
-      // },
     },
     country: {
       type: String,
-      // required: function () {
-      //   return this.role === "client";
-      // },
     },
     role: {
       type: String,

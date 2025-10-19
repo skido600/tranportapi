@@ -98,8 +98,8 @@ export const Driverdetails = Joi.object({
 
   phone: Joi.number()
     .integer()
-    .min(1000000000) // 10 digits
-    .max(999999999999999) // 15 digits
+    .min(1000000000)
+    .max(999999999999999)
     .required()
     .messages({
       "number.base": "Phone number must be a number",
@@ -133,5 +133,16 @@ export const Driverdetails = Joi.object({
 
   description: Joi.string().required().messages({
     "string.empty": "Description is required.",
+  }),
+});
+
+export const createNewsSchema = Joi.object({
+  newsTitle: Joi.string().min(3).max(100).required().messages({
+    "string.empty": "News title is required",
+    "string.min": "News title must be at least 3 characters",
+  }),
+  newsBody: Joi.string().min(10).required().messages({
+    "string.empty": "News body is required",
+    "string.min": "News body must be at least 10 characters",
   }),
 });
