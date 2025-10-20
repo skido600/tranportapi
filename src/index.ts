@@ -19,7 +19,11 @@ const server = express();
 server.use(express.json());
 server.use(
   cors({
-    origin: ["http://localhost:3000", "https://tranport.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "https://tranport.vercel.app",
+      "tranport-production.up.railway.app",
+    ],
     credentials: true,
   })
 );

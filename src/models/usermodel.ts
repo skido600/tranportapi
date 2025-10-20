@@ -99,7 +99,7 @@ userSchema.pre("save", function (next) {
         .toString(36)
         .substring(2, 10)
         .toUpperCase();
-      this.userId = `DXL/${randomPart}`;
+      this.userId = `DXL${randomPart}`;
     } else {
       this.userId = generateRandomCode();
     }

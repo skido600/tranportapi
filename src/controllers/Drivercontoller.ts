@@ -18,13 +18,13 @@ interface AuthRequest extends Request {
     _id: string;
   };
 }
-interface TruckImagesDriver {
-  images: {
-    originalName: string;
-    publicId: string;
-    url: string;
-  }[];
-}
+// interface TruckImagesDriver {
+//   images: {
+//     originalName: string;
+//     publicId: string;
+//     url: string;
+//   }[];
+// }
 
 //DRIVER APPLICATION
 async function Drivercontroller(
@@ -88,7 +88,15 @@ async function Drivercontroller(
         );
       }
     }
-
+    // Validate uploaded files
+    if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+      return HandleResponse(
+        res,
+        false,
+        400,
+        "Please upload at least one image of your truck or vehicle."
+      );
+    }
     // Create driver request
     const driver = await Driver.create({
       authId,
@@ -105,19 +113,12 @@ async function Drivercontroller(
       status: "pending",
     });
 
-    // Validate uploaded files
-    if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
-      return HandleResponse(
-        res,
-        false,
-        400,
-        "Please upload at least one image of your truck or vehicle."
-      );
-    }
-
     const uploadedImages = await Promise.all(
       (req.files as Express.Multer.File[]).map(async (file) => {
-        const result = await cloudinary.uploader.upload(file.path);
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: "driver_trucks",
+          resource_type: "image",
+        });
         return {
           originalName: file.originalname,
           publicId: result.public_id,
@@ -312,10 +313,224 @@ async function AdminRejectDriverRequest(
     next(error);
   }
 }
+async function GeteachDriverRequest(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const authId = req.user?._id;
+    console.log("testing something", authId);
+    if (!authId) {
+      return HandleResponse(res, false, 400, "You must be authenticated");
+    }
+    const userdetails = await Driver.find({ authId: authId }).populate(
+      "truckImagesDriver"
+    );
+
+    if (userdetails.length === 0 || !userdetails) {
+      return HandleResponse(res, false, 400, "user not found or empty user");
+    }
+    HandleResponse(
+      res,
+      true,
+      200,
+      `hey ${req.user?.full_name}  thid your request order`,
+      userdetails
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+//update
+// UPDATE DRIVER DETAILS
+// UPDATE DRIVER DETAILS
+async function UpdateDriverInfo(
+  req: any,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const authId = req.user?._id;
+    if (!authId)
+      return HandleResponse(res, false, 400, "You must be authenticated");
+
+    const { description, town, country, state, phone, price } = req.body;
+
+    // Ensure at least one field is updated
+    if (
+      !description &&
+      !country &&
+      !town &&
+      !state &&
+      !phone &&
+      !price &&
+      (!req.files || req.files.length === 0)
+    ) {
+      return HandleResponse(
+        res,
+        false,
+        400,
+        "Please update at least one field"
+      );
+    }
+
+    const driver = await Driver.findOne({ authId }).populate(
+      "truckImagesDriver"
+    );
+    if (!driver) return HandleResponse(res, false, 404, "Driver not found");
+
+    // Handle image uploads
+    if (req.files && req.files.length > 0) {
+      const currentImages = (driver?.truckImagesDriver as any)?.images || [];
+      const totalImages = currentImages.length + req.files.length;
+
+      if (totalImages > 5) {
+        return HandleResponse(
+          res,
+          false,
+          400,
+          `You can only have a maximum of 5 images. You currently have ${currentImages.length}.`
+        );
+      }
+
+      const uploadedImages = await Promise.all(
+        (req.files as Express.Multer.File[]).map(async (file) => {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "driver_trucks",
+            resource_type: "image",
+          });
+          return {
+            originalName: file.originalname,
+            publicId: result.public_id,
+            url: result.secure_url,
+          };
+        })
+      );
+
+      if (driver.truckImagesDriver) {
+        await DriverTruckImg.findByIdAndUpdate(driver.truckImagesDriver._id, {
+          $push: { images: { $each: uploadedImages } },
+        });
+      } else {
+        const newImageDoc = await DriverTruckImg.create({
+          userId: driver._id,
+          images: uploadedImages,
+        });
+        driver.truckImagesDriver = newImageDoc._id;
+      }
+    }
+
+    // Update text fields
+    if (description) driver.description = description;
+    if (country) driver.country = country;
+    if (town) driver.town = town;
+    if (state) driver.state = state;
+    if (phone) driver.phone = phone;
+    if (price) driver.price = price;
+    await driver.save();
+
+    const updatedDriver = await Driver.findOne({ authId }).populate(
+      "truckImagesDriver"
+    );
+    HandleResponse(
+      res,
+      true,
+      200,
+      "Driver info updated successfully",
+      updatedDriver
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function DeleteDriverImage(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const authId = req.user?._id;
+    if (!authId)
+      return HandleResponse(res, false, 400, "You must be authenticated");
+
+    const { imageId } = req.params;
+
+    // Find the driver with populated images
+    const driver = await Driver.findOne({ authId }).populate(
+      "truckImagesDriver"
+    );
+    if (!driver) return HandleResponse(res, false, 404, "Driver not found");
+
+    const truckImages = driver.truckImagesDriver;
+    if (!truckImages || !truckImages.images.length)
+      return HandleResponse(res, false, 404, "No truck images found");
+
+    // Find the image to delete
+    const image = truckImages.images.find(
+      (img: any) => img._id.toString() === imageId
+    );
+    if (!image) return HandleResponse(res, false, 404, "Image not found");
+
+    // Delete from Cloudinary
+    await cloudinary.uploader.destroy(image.publicId);
+
+    // Remove from MongoDB using $pull
+    await DriverTruckImg.findByIdAndUpdate(truckImages._id, {
+      $pull: { images: { _id: imageId } },
+    });
+
+    const updatedTruckImages = await DriverTruckImg.findById(truckImages._id);
+
+    HandleResponse(
+      res,
+      true,
+      200,
+      "Image deleted successfully",
+      updatedTruckImages
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+// async function UpdateDp(
+//   req: AuthRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> {
+//   try {
+//     const userId = req.user?._id;
+//     if (!userId) return HandleResponse(res, false, 401, "Unauthorized");
+//     const user = await Auth.findById(userId);
+//     if (!user) return HandleResponse(res, false, 404, "User not found");
+//     if (!req.file) return HandleResponse(res, false, 404, "image not found");
+
+//     if (user.publicId) {
+//       await cloudinary.uploader.destroy(user.publicId);
+//     }
+//     // Upload new image
+//     const result = await cloudinary.uploader.upload(req.file.path, {
+//       folder: "user_dp",
+//     });
+
+//     user.image = result.secure_url;
+//     user.publicId = result.public_id;
+//     await user.save();
+//     HandleResponse(res, true, 200, "Profile updated successfully", user);
+//   } catch (err) {
+//     next(err);
+//   }
+// }
 
 export default {
+  // UpdateDp,
   Drivercontroller,
   AdminGetAllRequestedDriver,
+  GeteachDriverRequest,
+  UpdateDriverInfo,
+  DeleteDriverImage,
   AdminAcceptDriverRequest,
   AdminRejectDriverRequest,
 };

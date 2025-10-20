@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 
 // Trip schema
-interface Trip {
-  driver: mongoose.Schema.Types.ObjectId;
+export interface Trip extends Document {
+  driverId: mongoose.Schema.Types.ObjectId;
+  customerId: mongoose.Schema.Types.ObjectId;
   origin: string;
   destination: string;
   date: Date;
@@ -10,12 +11,16 @@ interface Trip {
   status: "pending" | "completed" | "cancelled";
   description?: string;
 }
-
 const tripSchema = new mongoose.Schema<Trip>(
   {
-    driver: {
+    driverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Driver",
+      required: true,
+    },
+    customerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Auth",
       required: true,
     },
     origin: { type: String, required: true },

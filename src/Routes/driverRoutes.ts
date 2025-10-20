@@ -32,11 +32,34 @@ driver.post(
   Drivercontoller.AdminRejectDriverRequest
 );
 driver.get(
+  "/requestdetails",
+  verifyToken,
+  Drivercontoller.GeteachDriverRequest
+);
+driver.put(
+  "/update",
+  verifyToken,
+  upload.array("truckImagesDriver"),
+  Drivercontoller.UpdateDriverInfo
+);
+driver.delete(
+  "/deleteimg/:imageId",
+  verifyToken,
+  Drivercontoller.DeleteDriverImage
+);
+driver.get(
   "/requested-driver",
   verifyToken,
   // isAdmin,
   Drivercontoller.AdminGetAllRequestedDriver
 );
+//update dp
+// driver.put(
+//   "/update-dp",
+//   upload.single("image"),
+//   verifyToken,
+//   Drivercontoller.UpdateDp
+// );
 
 driver.post("/news", verifyToken, upload.single("image"), createDriverNews);
 driver.get("/news/:slug", verifyToken, getDriverNewsBySlug);

@@ -58,6 +58,7 @@ export async function createDriverNews(
     if (req.file) {
       const uploaded = await cloudinary.uploader.upload(req.file.path, {
         folder: "driver_news",
+        resource_type: "image",
       });
 
       imageData = {

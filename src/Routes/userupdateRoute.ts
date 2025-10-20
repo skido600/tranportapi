@@ -12,8 +12,9 @@ const userpersonaldata: Router = express.Router();
 userpersonaldata.get("/client", verifyToken, getClientProfile);
 userpersonaldata.get("/driver", verifyToken, getDriverProfile);
 userpersonaldata.put(
-  "/update-image",
-  upload.single("image"),
+  "/update-dp",
+  verifyToken,
+  upload.single("profileImage"),
   updateProfileImage
 );
 export default userpersonaldata;

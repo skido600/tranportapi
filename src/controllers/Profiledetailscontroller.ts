@@ -36,6 +36,7 @@ export async function getClientProfile(
       return HandleResponse(res, false, 403, "Not a client account");
     }
 
+    console.log("client", user);
     const clientData = {
       userId: user._id,
       full_name: user.full_name,
@@ -45,6 +46,7 @@ export async function getClientProfile(
       role: user.role,
       updatedAt: user.updatedAt,
       createdAt: user.createdAt,
+      image: user.image,
     };
 
     HandleResponse(
@@ -79,41 +81,17 @@ export async function getDriverProfile(
     if (user.role !== "driver") {
       return HandleResponse(res, false, 403, "Not a driver account");
     }
-
+    console.log(user);
     const driverData = {
       userId: user._id,
       full_name: user.full_name,
       email: user.email,
       userName: user.userName,
       role: user.role,
-      driver: user.driver
-        ? {
-            _id: user.driver._id,
-            licenseNumber: user.driver.licenseNumber,
-            phone: user.driver.phone,
-            truckType: user.driver.truckType,
-            country: user.driver.country,
-            state: user.driver.state,
-            town: user.driver.town,
-            price: user.driver.price,
-            isDriverRequest: user.driver.isDriverRequest,
-            verified: user.driver.verified,
-            rating: user.driver.rating,
-            description: user.driver.description,
-            status: user.driver.status,
-            experience: user.driver.experience,
-            driverId: user.driver.driverId,
-            truckImagesDriver: user.driver.truckImagesDriver
-              ? {
-                  _id: user.driver.truckImagesDriver._id,
-                  images: user.driver.truckImagesDriver.images,
-                  createdAt: user.driver.truckImagesDriver.createdAt,
-                  updatedAt: user.driver.truckImagesDriver.updatedAt,
-                }
-              : null,
-          }
-        : null, // default null if driver hasn’t registered
       updatedAt: user.updatedAt,
+      image: user.image,
+      address: user.address,
+      country: user.country,
     };
 
     HandleResponse(
@@ -133,36 +111,26 @@ export const updateProfileImage = async (
   next: NextFunction
 ) => {
   try {
-    const authId = req.user?._id;
-    if (!authId) {
-      return HandleResponse(res, false, 400, "You must be authenticated");
-    }
+    const userId = req.user?._id;
+    if (!userId) return HandleResponse(res, false, 401, "Unauthorized");
+    const user = await Auth.findById(userId);
+    if (!user) return HandleResponse(res, false, 404, "User not found");
+    if (!req.file) return HandleResponse(res, false, 404, "image not found");
 
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No file uploaded" });
-    }
-    const user = await Auth.findById(authId);
-    console.log("just been sure it hit", user);
-    if (!user) {
-      return HandleResponse(res, false, 404, "User not found");
-    }
-
-    if (user.publicId && !user.image.includes("/images/")) {
+    if (user.publicId) {
       await cloudinary.uploader.destroy(user.publicId);
     }
 
-    const uploaded = await cloudinary.uploader.upload(req.file.path, {
-      folder: user.role === "driver" ? "drivers" : "clients",
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "user_dp",
     });
 
-    user.image = uploaded.secure_url;
-    user.publicId = uploaded.public_id;
+    user.image = result.secure_url;
+    user.publicId = result.public_id;
     await user.save();
-    HandleResponse(res, true, 200, "Profile image updated successfully");
-  } catch (error) {
-    next(error);
+    HandleResponse(res, true, 200, "Profile updated successfully", user);
+  } catch (err) {
+    next(err);
   }
 };
 export const updateDriverDetails = async (
