@@ -24,7 +24,7 @@ export async function createDriverNews(
 ): Promise<void> {
   try {
     const userId = req.user?._id;
-    const { newsTitle, newsBody, image } = req.body;
+    const { newsTitle, newsBody } = req.body;
     console.log("Incoming body:", req.body);
     if (!userId) {
       return HandleResponse(res, false, 401, "User not authenticated");
@@ -76,11 +76,7 @@ export async function createDriverNews(
       image: imageData,
     });
 
-    newNews.slug = helperSlug(
-      newsTitle,
-      newNews._id.toString(),
-      user.userId.toString()
-    );
+    newNews.slug = helperSlug(newsTitle, newNews._id.toString(), user.userId);
     await newNews.save();
 
     console.log("created stuff", newNews);

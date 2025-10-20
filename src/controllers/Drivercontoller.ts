@@ -148,7 +148,7 @@ async function Drivercontroller(
     // Notify user via DB + socket
     const userNotification = await NotificationModel.create({
       userId: authId,
-      message: "Your driver request is pending admin approval",
+      message: "Your driver request is pending awailting for admin approval",
       status: "pending",
     });
     io.to(user.userId).emit("driver_status_update", userNotification);
@@ -275,10 +275,6 @@ async function AdminRejectDriverRequest(
   next: NextFunction
 ): Promise<void> {
   try {
-    // if (!req.user?.isAdmin) {
-    //   return HandleResponse(res, false, 403, "You must be admin");
-    // }
-
     const driverId = req.params.driverid;
     if (!driverId) {
       return HandleResponse(res, false, 400, "Driver ID is required");
@@ -301,9 +297,9 @@ async function AdminRejectDriverRequest(
 
     // Notify user via DB + socket
     const userNotification = await NotificationModel.create({
-      userId: user?.userId,
-      message: `Your driver request has been rejected by admin.`,
-      status: "approved",
+      userId: user?._id,
+      message: `Your driver request has been rejected by admin. try again and register recheck your information`,
+      status: "rejected",
     });
 
     io.to(user.userId).emit("driver_status_update", userNotification);
