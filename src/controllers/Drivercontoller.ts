@@ -462,8 +462,8 @@ async function DeleteDriverImage(
       "truckImagesDriver"
     );
     if (!driver) return HandleResponse(res, false, 404, "Driver not found");
+    const truckImages = driver.truckImagesDriver as any;
 
-    const truckImages = driver.truckImagesDriver;
     if (!truckImages || !truckImages.images.length)
       return HandleResponse(res, false, 404, "No truck images found");
 
