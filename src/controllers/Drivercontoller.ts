@@ -147,7 +147,7 @@ async function Drivercontroller(
 
     // Notify user via DB + socket
     const userNotification = await NotificationModel.create({
-      userId: authId,
+      userId: user?._id,
       message: "Your driver request is pending awailting for admin approval",
       status: "pending",
     });
@@ -491,40 +491,52 @@ async function DeleteDriverImage(
   }
 }
 
-// async function UpdateDp(
-//   req: AuthRequest,
-//   res: Response,
-//   next: NextFunction
-// ): Promise<void> {
-//   try {
-//     const userId = req.user?._id;
-//     if (!userId) return HandleResponse(res, false, 401, "Unauthorized");
-//     const user = await Auth.findById(userId);
-//     if (!user) return HandleResponse(res, false, 404, "User not found");
-//     if (!req.file) return HandleResponse(res, false, 404, "image not found");
+async function Alldrivers(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const drivers = await Driver.find({ isDriver: true }).populate(
+      "authId",
+      "full_name email phone image"
+    );
 
-//     if (user.publicId) {
-//       await cloudinary.uploader.destroy(user.publicId);
-//     }
-//     // Upload new image
-//     const result = await cloudinary.uploader.upload(req.file.path, {
-//       folder: "user_dp",
-//     });
+    if (!drivers || drivers.length === 0) {
+      return HandleResponse(res, false, 404, "No drivers found");
+    }
+    HandleResponse(res, true, 200, "Drivers retrieved successfully", drivers);
+  } catch (err) {
+    next(err);
+  }
+}
+async function getDriverById(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id } = req.params;
 
-//     user.image = result.secure_url;
-//     user.publicId = result.public_id;
-//     await user.save();
-//     HandleResponse(res, true, 200, "Profile updated successfully", user);
-//   } catch (err) {
-//     next(err);
-//   }
-// }
+    const driver = await Driver.findOne({ _id: id, isDriver: true })
+      .populate("truckImagesDriver")
+      .populate("authId", "full_name email phone image");
 
+    if (!driver) {
+      return HandleResponse(res, false, 404, "Driver not found");
+    }
+
+    HandleResponse(res, true, 200, "Driver retrieved successfully", driver);
+  } catch (err) {
+    next(err);
+  }
+}
 export default {
-  // UpdateDp,
+  getDriverById,
   Drivercontroller,
   AdminGetAllRequestedDriver,
   GeteachDriverRequest,
+  Alldrivers,
   UpdateDriverInfo,
   DeleteDriverImage,
   AdminAcceptDriverRequest,

@@ -54,12 +54,8 @@ driver.get(
   Drivercontoller.AdminGetAllRequestedDriver
 );
 //update dp
-// driver.put(
-//   "/update-dp",
-//   upload.single("image"),
-//   verifyToken,
-//   Drivercontoller.UpdateDp
-// );
+driver.get("/all_driver", Drivercontoller.Alldrivers);
+driver.get("/all_driver/:id", Drivercontoller.getDriverById);
 
 driver.post("/news", verifyToken, upload.single("image"), createDriverNews);
 driver.get("/news/:slug", verifyToken, getDriverNewsBySlug);
