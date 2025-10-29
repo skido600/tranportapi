@@ -1,11 +1,11 @@
 import express from "express";
 import type { Router } from "express";
 import auth from "../controllers/authController.ts";
-import {
-  getClientProfile,
-  getDriverProfile,
-} from "../controllers/Profiledetailscontroller.ts";
-import { verifyToken } from "../middlewares/verifyAccessToken.ts";
+// import {
+//   getClientProfile,
+//   getDriverProfile,
+// } from "../controllers/Profiledetailscontroller.ts";
+// import { verifyToken } from "../middlewares/verifyAccessToken.ts";
 import validateRequest from "../middlewares/ValidateRequest.ts";
 import {
   CreateUserSchema,

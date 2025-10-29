@@ -19,6 +19,7 @@ export class Tokens {
         isAdmin: user.isAdmin,
         full_name: user.full_name,
         userId: user.userId,
+        role: user.role,
       },
       this.ACCESS_TOKEN_SECRET,
       { expiresIn: "15m" }

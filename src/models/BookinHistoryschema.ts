@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const tripSchema = new mongoose.Schema(
+const BookingHistory = new Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -21,19 +21,17 @@ const tripSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    town: {
-      type: String,
-      trim: true,
-    },
+
     price: {
       type: Number,
       required: true,
-      min: 1000,
+      min: 0,
     },
     tripDate: {
       type: Date,
       required: true,
     },
+    message: { type: String },
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected", "completed"],
@@ -41,8 +39,11 @@ const tripSchema = new mongoose.Schema(
     },
     trackingId: { type: String, default: null },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
-const Trips = mongoose.model("Trip", tripSchema);
 
-export default Trips;
+const BookingHistorysave = mongoose.model("bookinghistory", BookingHistory);
+
+export default BookingHistorysave;

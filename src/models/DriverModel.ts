@@ -43,8 +43,24 @@ const driverSchema = new mongoose.Schema(
       ref: "trip",
       default: null,
     },
+    location: {
+      type: { type: String, default: "Point" },
+      coordinates: { type: [Number], default: [0, 0] },
+    },
     isDriver: { type: Boolean, default: false },
+    currentLocation: {
+      city: { type: String, default: "" },
+      region: { type: String, default: "" },
+      country: { type: String, default: "" },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
+      ip: { type: String, default: "" },
+      lastUpdated: { type: Date, default: Date.now },
+    },
   },
+
   { timestamps: true }
 );
 
@@ -55,8 +71,7 @@ driverSchema.pre("save", function (next) {
       .toString(36)
       .substring(2, 10)
       .toUpperCase();
-    this.driverId = `DXL/${randomPart}`;
-    console.log(`DXL/${randomPart}`);
+    this.driverId = `DXL${randomPart}`;
   }
   next();
 });

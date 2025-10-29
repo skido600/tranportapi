@@ -4,6 +4,7 @@ import Driver from "../models/DriverModel.ts";
 import Auth from "../models/usermodel.ts";
 import cloudinary from "../utils/cloudinary.ts";
 import DriverTruckImg from "../models/DriverTruckImagemodel.ts";
+import Trips from "../models/Trips.ts";
 
 interface AuthRequest extends Request {
   user?: {
@@ -36,7 +37,6 @@ export async function getClientProfile(
       return HandleResponse(res, false, 403, "Not a client account");
     }
 
-    console.log("client", user);
     const clientData = {
       userId: user._id,
       full_name: user.full_name,
@@ -73,7 +73,7 @@ export async function getDriverProfile(
     }
 
     const user = await Auth.findById(authId).select("+driver");
-    console.log("driver details", user);
+
     if (!user) {
       return HandleResponse(res, false, 404, "User not found");
     }
@@ -81,7 +81,7 @@ export async function getDriverProfile(
     if (user.role !== "driver") {
       return HandleResponse(res, false, 403, "Not a driver account");
     }
-    console.log(user);
+
     const driverData = {
       userId: user._id,
       full_name: user.full_name,
@@ -189,7 +189,7 @@ export const updateDriverDetails = async (
       }
     );
 
-    // ✅ Handle image deletion
+    //  Handle image deletion
     if (deletePublicIds && Array.isArray(deletePublicIds)) {
       for (const publicId of deletePublicIds) {
         await cloudinary.uploader.destroy(publicId); // delete from Cloudinary
@@ -201,7 +201,7 @@ export const updateDriverDetails = async (
       );
     }
 
-    // ✅ Handle new image uploads
+    // Handle new image uploads
     if (req.files && Array.isArray(req.files)) {
       const uploadedImages = [];
 
@@ -235,7 +235,6 @@ export const updateDriverDetails = async (
       finalDriver
     );
   } catch (error) {
-    console.error("Error updating driver:", error);
     next(error);
   }
 };
@@ -256,9 +255,30 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 
     const users = await Auth.find(filter);
-    console.log(users);
+
     HandleResponse(res, true, 200, "Users fetched successfully", users);
   } catch (err: any) {
     HandleResponse(res, false, 500, err.message);
   }
 };
+
+export async function DeleteUserData(
+  req: any,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      return HandleResponse(res, false, 400, "User ID is required");
+    }
+
+    // 1s Delete user from Auth
+    await Auth.findByIdAndDelete(userId);
+
+    return HandleResponse(res, true, 200, "All user data successfully deleted");
+  } catch (error) {
+    console.error("Error deleting user data:", error);
+    next(error);
+  }
+}

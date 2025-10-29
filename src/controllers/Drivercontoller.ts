@@ -18,13 +18,6 @@ interface AuthRequest extends Request {
     _id: string;
   };
 }
-// interface TruckImagesDriver {
-//   images: {
-//     originalName: string;
-//     publicId: string;
-//     url: string;
-//   }[];
-// }
 
 //DRIVER APPLICATION
 async function Drivercontroller(

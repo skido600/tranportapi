@@ -10,6 +10,7 @@ interface AuthRequest extends Request {
     isAdmin?: string;
     email?: string;
     full_name?: string;
+    role: string;
     _id: string;
     userId: string;
   };
@@ -32,6 +33,7 @@ export const verifyToken = async (
       email?: string;
       isVerified: boolean;
       _id: string;
+      role: string;
     };
     // console.log("decoded token", decoded);
     req.user = decoded;
@@ -41,11 +43,11 @@ export const verifyToken = async (
   }
 };
 
-// export const allowRoles = (...roles) => {
-//   return (req, res, next) => {
-//     if (!roles.includes(req.user.role)) {
-//       return res.status(403).json({ message: "Access denied" });
-//     }
-//     next();
-//   };
-// };
+export const allowRoles = (...roles: any) => {
+  return (req: any, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    next();
+  };
+};

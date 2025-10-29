@@ -14,14 +14,13 @@ client.on("error", (err) => {
 async function connectRedis() {
   try {
     await client.connect();
-    console.log("✅ Redis connected successfully!");
+    console.log(" Redis connected successfully!");
   } catch (error) {
-    console.error("❌ Failed to connect to Redis:", error);
+    console.error(" Failed to connect to Redis:", error);
     process.exit(1);
   }
 }
 
-// Immediately connect on import
 connectRedis();
 
 export default client;

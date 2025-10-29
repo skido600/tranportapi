@@ -12,6 +12,7 @@ export interface Driver extends mongoose.Document {
   authId: mongoose.Types.ObjectId;
   driverId: string;
   discountPrice: number;
+  currentLocation: any;
   licenseNumber: string;
   isDriver: boolean;
   phone: string;
@@ -19,6 +20,7 @@ export interface Driver extends mongoose.Document {
   country: string;
   state: string;
   town: string;
+  location: any;
   price: number;
   isDriverRequest: boolean;
   verified: boolean;
@@ -48,7 +50,7 @@ export interface AuthUser extends mongoose.Document {
   driver?: mongoose.Types.ObjectId | any;
   isDriverRequest: boolean;
   ispremium: boolean;
-
+  location: any;
   resetCode?: string | null;
   resetCodeExpire?: Date | null;
   verificationCode?: string | null;

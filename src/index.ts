@@ -7,11 +7,11 @@ import cookieParser from "cookie-parser";
 
 import cors from "cors";
 import driver from "./Routes/driverRoutes.ts";
-
 import { initSocket } from "./utils/socket.ts";
 import path from "path";
 import http from "http";
 import userpersonaldata from "./Routes/userupdateRoute.ts";
+import tripRoute from "./Routes/TripRoutes.ts";
 
 //  initSocket
 const server = express();
@@ -21,6 +21,8 @@ server.use(
   cors({
     origin: [
       "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
       "https://tranport.vercel.app",
       "tranport-production.up.railway.app",
     ],
@@ -37,6 +39,7 @@ server.use(
 server.use("/auth/v1", authroute);
 server.use("/authenticated/v1", driver);
 server.use("/authenticated/userdetails", userpersonaldata);
+server.use("/usertrips", tripRoute);
 server.use(HandleError);
 server.use(notFound);
 

@@ -146,3 +146,19 @@ export const createNewsSchema = Joi.object({
     "string.min": "News body must be at least 10 characters",
   }),
 });
+export const TripsValidate = Joi.object({
+  pickup: Joi.string().min(3).required().messages({
+    "string.empty": "pickup title is required",
+  }),
+  destination: Joi.string().min(3).required().messages({
+    "string.empty": "destination title is required",
+  }),
+  price: Joi.number().min(1000).required().messages({
+    "number.base": "Price must be a number",
+    "number.min": "Minimum price is ₦1000",
+    "any.required": "Price is required",
+  }),
+  tripDate: Joi.any().required().messages({
+    "any.required": "Trip date is required",
+  }),
+});

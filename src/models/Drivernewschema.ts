@@ -23,11 +23,11 @@ const driverNewsSchema = new mongoose.Schema(
     image: {
       url: {
         type: String,
-        required: false, // optional if some posts don't have images
+        required: false,
       },
       public_id: {
         type: String,
-        required: false, // needed to delete from Cloudinary later
+        required: false,
       },
     },
 

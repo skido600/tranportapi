@@ -11,7 +11,6 @@ const helperSlug = (title: string, id: string, driverId: string): string => {
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "");
 
-  // Prevent error if driverId is undefined
   const safeDriverId = driverId ? driverId.replace(/\//g, "-") : "";
 
   return `${formattedTitle}-${id}-${safeDriverId}`;
@@ -25,7 +24,7 @@ export async function createDriverNews(
   try {
     const userId = req.user?._id;
     const { newsTitle, newsBody } = req.body;
-    console.log("Incoming body:", req.body);
+
     if (!userId) {
       return HandleResponse(res, false, 401, "User not authenticated");
     }
@@ -67,7 +66,7 @@ export async function createDriverNews(
       };
     }
 
-    // ✅ Create the driver news first
+    // Create the driver news first
     const newNews = await DriverNews.create({
       driverId: userId,
       newsTitle,
@@ -79,7 +78,6 @@ export async function createDriverNews(
     newNews.slug = helperSlug(newsTitle, newNews._id.toString(), user.userId);
     await newNews.save();
 
-    console.log("created stuff", newNews);
     return HandleResponse(
       res,
       true,
@@ -103,7 +101,7 @@ export async function getDriverNewsBySlug(
       "driverId",
       "full_name email"
     );
-    console.log("slug", news);
+
     if (!news) {
       return HandleResponse(res, false, 404, "News not found");
     }
@@ -134,7 +132,7 @@ export async function GetEachDrivernews(
     }
 
     const driverNewsdetails = await DriverNews.find({ driverId: userId });
-    console.log(driverNewsdetails);
+
     if (!driverNewsdetails || driverNewsdetails.length === 0) {
       return HandleResponse(
         res,
@@ -174,7 +172,7 @@ export async function deleteDriverNews(
       return HandleResponse(res, false, 404, "News not found");
     }
 
-    // ✅ Make sure user owns the post
+    //  Make sure user owns the post
     if (news.driverId.toString() !== userId.toString()) {
       return HandleResponse(
         res,
@@ -184,12 +182,12 @@ export async function deleteDriverNews(
       );
     }
 
-    // ✅ Delete image from Cloudinary (if exists)
+    // Delete image from Cloudinary (if exists)
     if (news.image?.public_id) {
       await cloudinary.uploader.destroy(news.image.public_id);
     }
 
-    // ✅ Delete post from DB
+    //Delete post from DB
     await news.deleteOne();
 
     return HandleResponse(res, true, 200, "Driver news deleted successfully");
