@@ -1476,3 +1476,38 @@ Solution:
 Build a A freight marketplace platform would let Emeka log in, enter shipment details (e.g., size, destination), and instantly see available truck drivers, prices, ratings, and tracking options, just like how Bolt or Uber works for people.
 
 Advantage: His goods would move faster, cheaper, and safer and his business would grow.
+
+
+
+
+
+
+TRANSPORT
+Freight & Logistics
+“My goods are stuck in Lagos”
+
+Problem in simple terms:
+Moving goods (like farm produce, products, or equipment) from one city to another is extremely frustrating in many developing countries. There’s no reliable way to find a truck, negotiate a fair price, or track the delivery. Many businesses lose customers because of delays or spoilage.
+
+Testimony:
+Emeka owns a small furniture factory in Aba. He got a big order from Abuja worth ₦2 million. The problem? He couldn’t find a trustworthy truck driver quickly. When he finally did, the driver overcharged and delayed the shipment by two weeks. His customer canceled the order, and Emeka lost the deal and also his reputation.
+
+Solution:
+Build a A freight marketplace platform would let Emeka log in, enter shipment details (e.g., size, destination), and instantly see available truck drivers, prices, ratings, and tracking options, just like how Bolt or Uber works for people.
+
+Advantage: His goods would move faster, cheaper, and safer and his business would grow.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
