@@ -7,7 +7,7 @@ import { config } from "dotenv";
 import BookingHistorysave from "../models/BookinHistoryschema.ts";
 import Driver from "../models/DriverModel.ts";
 import { MailService } from "../utils/sendEmails.ts";
-import Trips from "../models/Trips";
+import Trips from "../models/Trips.ts";
 import Auth from "../models/usermodel.ts";
 const mailService = new MailService();
 config();
