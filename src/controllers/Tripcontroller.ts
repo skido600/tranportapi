@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { Types } from "mongoose";
+
 import { HandleResponse } from "../utils/Response.ts";
 import { v4 as uuidv4 } from "uuid";
 import { TripsValidate } from "../validators/validation.ts";

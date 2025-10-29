@@ -4,7 +4,6 @@ import Driver from "../models/DriverModel.ts";
 import Auth from "../models/usermodel.ts";
 import cloudinary from "../utils/cloudinary.ts";
 import DriverTruckImg from "../models/DriverTruckImagemodel.ts";
-import Trips from "../models/Trips.ts";
 
 interface AuthRequest extends Request {
   user?: {
