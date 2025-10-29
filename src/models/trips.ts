@@ -43,6 +43,6 @@ const tripSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-const Trips = mongoose.model("Trip", tripSchema);
+const trips = mongoose.model("Trip", tripSchema);
 
-export default Trips;
+export default trips;
