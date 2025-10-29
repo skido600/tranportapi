@@ -10,7 +10,7 @@ import { MailService } from "../utils/sendEmails.ts";
 // import Trips from "../models/Trips.ts";
 
 import Auth from "../models/usermodel.ts";
-import Trips from "../models/Tripsumary.ts";
+import Trips from "../models/Tripsumary";
 const mailService = new MailService();
 config();
 export async function TripsLogic(
