@@ -1498,7 +1498,10 @@ Build a A freight marketplace platform would let Emeka log in, enter shipment de
 Advantage: His goods would move faster, cheaper, and safer and his business would grow.
 
 
-
+frontend ==>next js
+token ==> redis 
+backend ==> express typescript
+state manegment context api
 
 
 
